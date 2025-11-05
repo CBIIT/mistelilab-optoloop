@@ -1,0 +1,19 @@
+"light","category","n_observed","fraction_observed"
+"clone1-Dark","Both close",21,0.011965811965812
+"clone1-Dark","Both distant",1444,0.822792022792023
+"clone1-Dark","One close",290,0.165242165242165
+"clone1-Light","Both close",33,0.0214146658014276
+"clone1-Light","Both distant",1130,0.733290071382219
+"clone1-Light","One close",378,0.245295262816353
+"clone3-Dark","Both close",51,0.0255511022044088
+"clone3-Dark","Both distant",1478,0.740480961923848
+"clone3-Dark","One close",467,0.233967935871743
+"clone3-Light","Both close",96,0.0527472527472527
+"clone3-Light","Both distant",1060,0.582417582417582
+"clone3-Light","One close",664,0.364835164835165
+"clone7-Dark","Both close",74,0.0208980513979102
+"clone7-Dark","Both distant",2596,0.733126235526687
+"clone7-Dark","One close",871,0.245975713075402
+"clone7-Light","Both close",186,0.0516953863257365
+"clone7-Light","Both distant",2205,0.61284046692607
+"clone7-Light","One close",1207,0.335464146748193

@@ -3,12 +3,7 @@ title: "DNA FISH spot distance & RNA FISH calculations"
 author: "Martin Stortz/Gianluca Pegoraro"
 date: today
 date-format: long
-format: 
-  html:
-      self-contained: true
-      code-fold: true
-      code-tools: true
-      code-link: true
+format: gfm
 editor: source
 ---
 
@@ -56,15 +51,15 @@ plate_layout <- tibble(
   mutate(light = factor(light, levels = light_levs))
 ```
 
-### Download data if needed
+### Read cells and spots data
+
+HITIPS output text files must be in the `data` directory and the file names must match the GLOB pattern.
+
+Download data if needed
 
 ```{r}
 #| label: download
 ```
-
-### Read cells and spots data
-
-HITIPS output text files must be in the `data` directory and the file names must match the GLOB pattern.
 
 ### Read cells data
 
@@ -187,8 +182,6 @@ spot_filt_tbl <- spots_tbl |>
   as.data.table()
 ```
 
-*2D Spot distance calculations*
-
 ### Calculate distances between all possible DNA spot pairs for each cell
 
 ```{r}
@@ -222,7 +215,7 @@ gf_dist_2D <- spot_filt_tbl[channel %in% 2:4, # Only far-Red and Green spots
 setnames(gf_dist_2D, c("Var1", "Var2"), c("g_index", "f_index"))
 ```
 
-###Find minimum DNA spot distance Minimum distance is calculated based on channel 4 spots as reference
+### Find minimum DNA spot distance Minimum distance is calculated based on channel 4 spots as reference
 
 ```{r}
 #| label: proximity-green-farred
@@ -246,7 +239,7 @@ gf_dist_min_2D <- gf_dist_2D[, .SD[which.min(gf_dist), ],
   filter(gf_dist <= 1.5)
 ```
 
-### \### Per well summary calculations of DNA distances
+### Per well summary calculations of DNA distances
 
 Calculate fraction of close alleles
 
@@ -349,7 +342,7 @@ gf_per_cell_metrics <- gf_dist_min_2D |>
 
 ### RNA FISH data analysis
 
-### Define RNA FISH channel
+Define RNA FISH channel
 
 ```{r}
 #| label: rna-params
@@ -357,7 +350,7 @@ gf_per_cell_metrics <- gf_dist_min_2D |>
 channel_rna <- 3
 ```
 
-### Count RNA FISH spots per cell
+Count RNA FISH spots per cell
 
 ```{r}
 #| label: rna-spot-counts
@@ -376,7 +369,7 @@ rna_spots_per_cell <- rna_spots_tbl |>
   summarise(n_rna_spots = n(), .groups = "drop")
 ```
 
-## Merge per-cell DNA and RNA FISH data
+Merge per-cell DNA and RNA FISH data
 
 ```{r}
 #| label: merge-rna-dna
@@ -392,7 +385,7 @@ rna_dna_tbl <- cell_n_spots_filt_tbl |>
   mutate(n_rna_spots = replace_na(n_rna_spots, 0))
 ```
 
-### Sum RNA spots total intensity at cell level
+Sum RNA spots total intensity at cell level
 
 ```{r}
 #| label: rna-intensity-sum
@@ -408,7 +401,7 @@ rna_intensity_per_cell <- spots_tbl |>
   summarise(total_rna_intensity = sum(integrated_intensity, na.rm = TRUE), .groups = "drop")
 ```
 
-### Merge RNA spots intensity data into per-cell summary
+Merge RNA spots intensity data into per-cell summary
 
 ```{r}
 #| label: merge-rna-dna-intensity
@@ -423,7 +416,7 @@ rna_dna_tbl <- cell_n_spots_filt_tbl |>
   )
 ```
 
-## Summarize RNA FISH data at the well-level
+### Summarize RNA FISH data at the well-level
 
 ```{r}
 #| label: summarize
@@ -438,7 +431,7 @@ rna_summary <- rna_dna_tbl |>
   )
 ```
 
-###Bin cells according to fraction of close alleles
+Bin cells according to fraction of close alleles
 
 ```{r}
 #| label: bin-frac-close
@@ -453,7 +446,7 @@ rna_dna_binned_frac_tbl <- rna_dna_tbl |>
   filter(!is.na(frac_bin))
 ```
 
-### Summary binned cells results at well-level
+Summary binned cells results at well-level
 
 ```{r}
 #| label: bin-summary-table
@@ -474,7 +467,7 @@ rna_dna_bin_summary_tbl <- rna_dna_binned_frac_tbl |>
   )
 ```
 
-### Save CSV output files
+Save CSV output files
 
 ```{r}
 #| label: write-files
@@ -498,7 +491,7 @@ write.csv(rna_summary, "output/RNA_FISH_summary.csv", row.names = FALSE)
 write.csv(well_tbl, "output/DNA_FISH_summary.csv", row.names = FALSE)
 ```
 
-## Session info
+Session info
 
 ```{r}
 #| label: session-info

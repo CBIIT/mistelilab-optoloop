@@ -1,31 +1,12 @@
----
-title: "DNA FISH spot distance & RNA FISH calculations"
-author: "Martin Stortz/Gianluca Pegoraro"
-date: today
-date-format: long
-format: gfm
-editor: source
----
+# DNA FISH spot distance & RNA FISH calculations
+Martin Stortz/Gianluca Pegoraro
+November 6, 2025
 
 ### Load packages
 
-```{r}
-#| label: load-packages
-#| include: false
-#| warning: false
-
-library(dplyr)
-library(tidyverse)
-library(fs)
-library(data.table)
-library(ggthemes)
-library(SpatialTools)
-library(knitr)
-```
-
 ### User variables input and settings specification
 
-```{r input-variables}
+``` r
 GLOB_C <- "*nuclei_information_well*" # Pattern for Single Cell data files
 GLOB_S <- "*spots_locations_well*" # Pattern for Single Spot data files
 
@@ -36,16 +17,14 @@ XY_RES <- 0.108 # pixel size in um
 
 Provide experimental conditions and plate layout
 
-```{r}
-#| label: read-metadata
-
+``` r
 # Provide experimental conditions in desired order:
 light_levs <- c("Ctrl", "gRNA")
 
 plate_layout <- tibble(
   row = c(8L, 9L),
-  column = c(12L, 12L),
-  well_index = c("H12", "I12"),
+  column = c(13L, 13L),
+  well_index = c("H13", "I13"),
   light = c("Ctrl", "gRNA")
 ) |>
   mutate(light = factor(light, levels = light_levs))
@@ -53,19 +32,14 @@ plate_layout <- tibble(
 
 ### Read cells and spots data
 
-HITIPS output text files must be in the `data` directory and the file names must match the GLOB pattern.
+HITIPS output text files must be in the `data` directory and the file
+names must match the GLOB pattern.
 
 Download data if needed
 
-```{r}
-#| label: download
-```
-
 ### Read cells data
 
-```{r}
-#| label: read-cells
-
+``` r
 cell_tbl <- dir_info("data",
   recurse = T,
   glob = GLOB_C
@@ -89,13 +63,14 @@ cell_tbl <- dir_info("data",
 cell_tbl <- cell_tbl[!is.na(cell_tbl$light), ]
 ```
 
-Read and process the spot level data. Convert the x, y and z coordinates to microns (They were originally calculated in pixels) and filter spots that do not belong to any nucleus. These have a `cell_index` value of `0`.
+Read and process the spot level data. Convert the x, y and z coordinates
+to microns (They were originally calculated in pixels) and filter spots
+that do not belong to any nucleus. These have a `cell_index` value of
+`0`.
 
 ### Read spots data
 
-```{r}
-#| label: read-spots
-
+``` r
 spots_tbl <- dir_info("data",
   recurse = T,
   glob = GLOB_S
@@ -125,18 +100,14 @@ spots_tbl <- spots_tbl[!is.na(spots_tbl$light), ]
 
 ### Filter cells by size and shape
 
-```{r}
-#| label: cell-filter
-
+``` r
 cell_filter_tbl <- cell_tbl |>
-  filter(area >= 45, solidity >= 0.875)
+  filter(area >= 50, solidity >= 0.92)
 ```
 
 ### Spot number per cell calculations
 
-```{r}
-#| label: calc-n-spots
-
+``` r
 cell_n_spots_tbl <- spots_tbl |>
   group_by(
     column, row, well_index, light, field_index,
@@ -154,9 +125,7 @@ cell_n_spots_tbl <- spots_tbl |>
 
 ### Filter cells by spot number
 
-```{r}
-#| label: filter-spots
-
+``` r
 spot_filt_criterion <- quote(n_spots_channel_4 >= 2 & n_spots_channel_2 >= n_spots_channel_4) # set criterion for filtering
 
 cell_n_spots_filt_tbl <- cell_n_spots_tbl |>
@@ -169,9 +138,7 @@ cell_n_spots_filt_tbl <- cell_n_spots_tbl |>
 
 ### Filter out spots according to previous cell filtering by size, shape and spot number
 
-```{r}
-#| label: filter-spots-2
-
+``` r
 spot_filt_tbl <- spots_tbl |>
   semi_join(cell_n_spots_filt_tbl,
     by = c(
@@ -184,9 +151,7 @@ spot_filt_tbl <- spots_tbl |>
 
 ### Calculate distances between all possible DNA spot pairs for each cell
 
-```{r}
-#| label: calc-spot-dist
-
+``` r
 gf_dist_2D <- spot_filt_tbl[channel %in% 2:4, # Only far-Red and Green spots
   reshape2::melt(
     SpatialTools::dist2(
@@ -217,9 +182,7 @@ setnames(gf_dist_2D, c("Var1", "Var2"), c("g_index", "f_index"))
 
 ### Find minimum DNA spot distance Minimum distance is calculated based on channel 4 spots as reference
 
-```{r}
-#| label: proximity-green-farred
-
+``` r
 setkey(
   gf_dist_2D, row, column, well_index,
   field_index, time_point, cell_index, f_index
@@ -243,9 +206,7 @@ gf_dist_min_2D <- gf_dist_2D[, .SD[which.min(gf_dist), ],
 
 Calculate fraction of close alleles
 
-```{r}
-#| label: contacts
-
+``` r
 overlap_dist <- 0.27 # Threshold distance (in um) for contacts
 
 overlaps <- gf_dist_min_2D |>
@@ -254,14 +215,18 @@ overlaps <- gf_dist_min_2D |>
     row, column
   ) |>
   summarize(close_alleles = mean(gf_dist < overlap_dist))
+```
+
+    `summarise()` has grouped output by 'well_index', 'light', 'row'. You can
+    override using the `.groups` argument.
+
+``` r
 overlaps$light <- factor(overlaps$light, levels = c(light_levs))
 ```
 
 Summarize the number of DNA spots per cell data into well-level data.
 
-```{r}
-#| label: spot-n-summary
-
+``` r
 well_tbl_n_spots <- cell_n_spots_filt_tbl |>
   group_by(
     well_index, light,
@@ -280,11 +245,12 @@ well_tbl_n_spots <- cell_n_spots_filt_tbl |>
   )
 ```
 
+    `summarise()` has grouped output by 'well_index', 'light', 'row'. You can
+    override using the `.groups` argument.
+
 Summarize the DNA spot distance level data into well-level data.
 
-```{r}
-#| label: distances-summary
-
+``` r
 well_tbl_gf_dist <- gf_dist_min_2D |>
   group_by(
     well_index, light,
@@ -309,12 +275,12 @@ well_tbl_gf_dist <- gf_dist_min_2D |>
   )
 ```
 
+    `summarise()` has grouped output by 'well_index', 'light', 'row'. You can
+    override using the `.groups` argument.
+
 Bring all the DNA FISH well-level data information together.
 
-```{r}
-#| label: summarize-cell-props
-#| results: asis
-
+``` r
 well_tbl <- well_tbl_n_spots |>
   left_join(well_tbl_gf_dist, by = c("row", "column", "well_index", "light")) |>
   left_join(overlaps, by = c("row", "column", "well_index", "light")) |>
@@ -327,9 +293,7 @@ well_tbl <- well_tbl_n_spots |>
 
 ### Compute per-cell DNA FISH metrics
 
-```{r}
-#| label: per-cell-dna-metrics
-
+``` r
 # Calculate per-cell mean DNA distance and fraction of close alleles
 gf_per_cell_metrics <- gf_dist_min_2D |>
   group_by(well_index, light, column, row, field_index, time_point, cell_index) |>
@@ -344,17 +308,14 @@ gf_per_cell_metrics <- gf_dist_min_2D |>
 
 Define RNA FISH channel
 
-```{r}
-#| label: rna-params
+``` r
 # Define RNA FISH channel
 channel_rna <- 3
 ```
 
 Count RNA FISH spots per cell
 
-```{r}
-#| label: rna-spot-counts
-
+``` r
 rna_spots_tbl <- spots_tbl |>
   filter(channel == channel_rna) |>
   semi_join(cell_n_spots_filt_tbl,
@@ -371,9 +332,7 @@ rna_spots_per_cell <- rna_spots_tbl |>
 
 Merge per-cell DNA and RNA FISH data
 
-```{r}
-#| label: merge-rna-dna
-
+``` r
 rna_dna_tbl <- cell_n_spots_filt_tbl |>
   select(well_index, light, column, row, field_index, time_point, cell_index) |>
   left_join(rna_spots_per_cell,
@@ -387,8 +346,7 @@ rna_dna_tbl <- cell_n_spots_filt_tbl |>
 
 Sum RNA spots total intensity at cell level
 
-```{r}
-#| label: rna-intensity-sum
+``` r
 rna_intensity_per_cell <- spots_tbl |>
   filter(channel == channel_rna) |>
   semi_join(cell_n_spots_filt_tbl,
@@ -403,8 +361,7 @@ rna_intensity_per_cell <- spots_tbl |>
 
 Merge RNA spots intensity data into per-cell summary
 
-```{r}
-#| label: merge-rna-dna-intensity
+``` r
 rna_dna_tbl <- cell_n_spots_filt_tbl |>
   select(well_index, light, column, row, field_index, time_point, cell_index) |>
   left_join(rna_spots_per_cell, by = c("well_index", "light", "column", "row", "field_index", "time_point", "cell_index")) |>
@@ -418,9 +375,7 @@ rna_dna_tbl <- cell_n_spots_filt_tbl |>
 
 ### Summarize RNA FISH data at the well-level
 
-```{r}
-#| label: summarize
-
+``` r
 rna_summary <- rna_dna_tbl |>
   group_by(light) |>
   summarise(
@@ -433,8 +388,7 @@ rna_summary <- rna_dna_tbl |>
 
 Bin cells according to fraction of close alleles
 
-```{r}
-#| label: bin-frac-close
+``` r
 rna_dna_binned_frac_tbl <- rna_dna_tbl |>
   mutate(frac_bin = case_when(
     frac_close == 0 ~ "0",
@@ -448,9 +402,7 @@ rna_dna_binned_frac_tbl <- rna_dna_tbl |>
 
 Summary binned cells results at well-level
 
-```{r}
-#| label: bin-summary-table
-
+``` r
 rna_dna_bin_summary_tbl <- rna_dna_binned_frac_tbl |>
   group_by(frac_bin, light) |>
   summarise(
@@ -469,9 +421,7 @@ rna_dna_bin_summary_tbl <- rna_dna_binned_frac_tbl |>
 
 Save CSV output files
 
-```{r}
-#| label: write-files
-
+``` r
 # Add normalized RNA intensity data to well summary
 rna_summary <- rna_summary |>
   mutate(
@@ -493,9 +443,42 @@ write.csv(well_tbl, "output/DNA_FISH_summary.csv", row.names = FALSE)
 
 Session info
 
-```{r}
-#| label: session-info
-#| results: markup
-
+``` r
 sessionInfo()
 ```
+
+    R version 4.5.1 (2025-06-13)
+    Platform: aarch64-apple-darwin20
+    Running under: macOS Sequoia 15.7.1
+
+    Matrix products: default
+    BLAS:   /Library/Frameworks/R.framework/Versions/4.5-arm64/Resources/lib/libRblas.0.dylib 
+    LAPACK: /Library/Frameworks/R.framework/Versions/4.5-arm64/Resources/lib/libRlapack.dylib;  LAPACK version 3.12.1
+
+    locale:
+    [1] en_US.UTF-8/en_US.UTF-8/en_US.UTF-8/C/en_US.UTF-8/en_US.UTF-8
+
+    time zone: America/New_York
+    tzcode source: internal
+
+    attached base packages:
+    [1] stats     graphics  grDevices utils     datasets  methods   base     
+
+    other attached packages:
+     [1] knitr_1.50         SpatialTools_1.0.5 ggthemes_5.1.0     data.table_1.17.8 
+     [5] fs_1.6.6           lubridate_1.9.4    forcats_1.0.1      stringr_1.6.0     
+     [9] purrr_1.2.0        readr_2.1.5        tidyr_1.3.1        tibble_3.3.0      
+    [13] ggplot2_4.0.0      tidyverse_2.0.0    dplyr_1.1.4       
+
+    loaded via a namespace (and not attached):
+     [1] magic_1.6-1        generics_0.1.4     stringi_1.8.7      lattice_0.22-7    
+     [5] hms_1.1.4          digest_0.6.37      magrittr_2.0.4     evaluate_1.0.5    
+     [9] grid_4.5.1         timechange_0.3.0   RColorBrewer_1.1-3 fastmap_1.2.0     
+    [13] plyr_1.8.9         jsonlite_2.0.0     Matrix_1.7-3       Formula_1.2-5     
+    [17] scales_1.4.0       spBayes_0.4-8      abind_1.4-8        cli_3.6.5         
+    [21] rlang_1.1.6        withr_3.0.2        yaml_2.3.10        tools_4.5.1       
+    [25] reshape2_1.4.4     tzdb_0.5.0         coda_0.19-4.1      vctrs_0.6.5       
+    [29] R6_2.6.1           lifecycle_1.0.4    pkgconfig_2.0.3    pillar_1.11.1     
+    [33] gtable_0.3.6       Rcpp_1.1.0         glue_1.8.0         xfun_0.54         
+    [37] tidyselect_1.2.1   rstudioapi_0.17.1  farver_2.1.2       htmltools_0.5.8.1 
+    [41] rmarkdown_2.30     compiler_4.5.1     S7_0.2.0           sp_2.2-0          

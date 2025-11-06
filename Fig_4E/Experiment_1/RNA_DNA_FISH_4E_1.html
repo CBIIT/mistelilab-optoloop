@@ -5,7 +5,7 @@
 <meta name="generator" content="quarto-1.7.33">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 <meta name="author" content="Martin Stortz/Gianluca Pegoraro">
-<meta name="dcterms.date" content="2025-11-05">
+<meta name="dcterms.date" content="2025-11-06">
 <title>DNA FISH spot distance &amp; RNA FISH calculations</title>
 <style>
 code{white-space: pre-wrap;}
@@ -2187,7 +2187,7 @@ vertical-align: -.125em;
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">November 5, 2025</p>
+      <p class="date">November 6, 2025</p>
     </div>
   </div>
   
@@ -2213,17 +2213,17 @@ vertical-align: -.125em;
 <span></span>
 <span><span class="va">plate_layout</span> <span class="op">&lt;-</span> <span class="fu">tibble</span><span class="op">(</span></span>
 <span>  row <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">8L</span>, <span class="fl">9L</span><span class="op">)</span>,</span>
-<span>  column <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">13L</span>, <span class="fl">13L</span><span class="op">)</span>,</span>
-<span>  well_index <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">&quot;H13&quot;</span>, <span class="st">&quot;I13&quot;</span><span class="op">)</span>,</span>
+<span>  column <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">12L</span>, <span class="fl">12L</span><span class="op">)</span>,</span>
+<span>  well_index <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">&quot;H12&quot;</span>, <span class="st">&quot;I12&quot;</span><span class="op">)</span>,</span>
 <span>  light <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">&quot;Ctrl&quot;</span>, <span class="st">&quot;gRNA&quot;</span><span class="op">)</span></span>
 <span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu">mutate</span><span class="op">(</span>light <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html">factor</a></span><span class="op">(</span><span class="va">light</span>, levels <span class="op">=</span> <span class="va">light_levs</span><span class="op">)</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
 </section><section id="download-data-if-needed" class="level3"><h3 class="anchored" data-anchor-id="download-data-if-needed">Download data if needed</h3>
-</section><section id="read-cells-and-spots-data" class="level3"><h3 class="anchored" data-anchor-id="read-cells-and-spots-data">Read cells and spots data</h3>
+<section id="read-cells-and-spots-data" class="level6"><h6 class="anchored" data-anchor-id="read-cells-and-spots-data">Read cells and spots data</h6>
 <p>HITIPS output text files must be in the <code>data</code> directory and the file names must match the GLOB pattern.</p>
-</section><section id="read-cells-data" class="level3"><h3 class="anchored" data-anchor-id="read-cells-data">Read cells data</h3>
+</section></section><section id="read-cells-data" class="level3"><h3 class="anchored" data-anchor-id="read-cells-data">Read cells data</h3>
 <div class="cell">
 <details class="code-fold"><summary>Code</summary><div class="sourceCode" id="cb3"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">cell_tbl</span> <span class="op">&lt;-</span> <span class="fu">dir_info</span><span class="op">(</span><span class="st">&quot;data&quot;</span>,</span>
 <span>  recurse <span class="op">=</span> <span class="cn">T</span>,</span>
@@ -2281,7 +2281,7 @@ vertical-align: -.125em;
 </section><section id="filter-cells-by-size-and-shape" class="level3"><h3 class="anchored" data-anchor-id="filter-cells-by-size-and-shape">Filter cells by size and shape</h3>
 <div class="cell">
 <details class="code-fold"><summary>Code</summary><div class="sourceCode" id="cb5"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">cell_filter_tbl</span> <span class="op">&lt;-</span> <span class="va">cell_tbl</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/stats/filter.html">filter</a></span><span class="op">(</span><span class="va">area</span> <span class="op">&gt;=</span> <span class="fl">50</span>, <span class="va">solidity</span> <span class="op">&gt;=</span> <span class="fl">0.92</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span>  <span class="fu"><a href="https://rdrr.io/r/stats/filter.html">filter</a></span><span class="op">(</span><span class="va">area</span> <span class="op">&gt;=</span> <span class="fl">45</span>, <span class="va">solidity</span> <span class="op">&gt;=</span> <span class="fl">0.875</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
 </section><section id="spot-number-per-cell-calculations" class="level3"><h3 class="anchored" data-anchor-id="spot-number-per-cell-calculations">Spot number per cell calculations</h3>
@@ -2326,7 +2326,7 @@ vertical-align: -.125em;
 </details>
 </div>
 <p><em>2D Spot distance calculations</em></p>
-</section><section id="calculate-distances-between-all-possible-dna-spot-pairs-for-each-cell" class="level3"><h3 class="anchored" data-anchor-id="calculate-distances-between-all-possible-dna-spot-pairs-for-each-cell">Calculate distances between all possible DNA spot pairs for each cell</h3>
+<p>###Calculate distances between all possible DNA spot pairs for each cell</p>
 <div class="cell">
 <details class="code-fold"><summary>Code</summary><div class="sourceCode" id="cb9"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">gf_dist_2D</span> <span class="op">&lt;-</span> <span class="va">spot_filt_tbl</span><span class="op">[</span><span class="va">channel</span> <span class="op"><a href="https://rdrr.io/r/base/match.html">%in%</a></span> <span class="fl">2</span><span class="op">:</span><span class="fl">4</span>, <span class="co"># Only far-Red and Green spots</span></span>
 <span>  <span class="fu">reshape2</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/reshape2/man/melt.html">melt</a></span><span class="op">(</span></span>
@@ -3139,8 +3139,8 @@ loaded via a namespace (and not attached):
 <span id="cb31-53"><a href="#cb31-53" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb31-54"><a href="#cb31-54" aria-hidden="true" tabindex="-1"></a>plate_layout <span class="ot">&lt;-</span> <span class="fu">tibble</span>(</span>
 <span id="cb31-55"><a href="#cb31-55" aria-hidden="true" tabindex="-1"></a>  <span class="at">row =</span> <span class="fu">c</span>(<span class="dv">8</span>L, <span class="dv">9</span>L),</span>
-<span id="cb31-56"><a href="#cb31-56" aria-hidden="true" tabindex="-1"></a>  <span class="at">column =</span> <span class="fu">c</span>(<span class="dv">13</span>L, <span class="dv">13</span>L),</span>
-<span id="cb31-57"><a href="#cb31-57" aria-hidden="true" tabindex="-1"></a>  <span class="at">well_index =</span> <span class="fu">c</span>(<span class="st">&quot;H13&quot;</span>, <span class="st">&quot;I13&quot;</span>),</span>
+<span id="cb31-56"><a href="#cb31-56" aria-hidden="true" tabindex="-1"></a>  <span class="at">column =</span> <span class="fu">c</span>(<span class="dv">12</span>L, <span class="dv">12</span>L),</span>
+<span id="cb31-57"><a href="#cb31-57" aria-hidden="true" tabindex="-1"></a>  <span class="at">well_index =</span> <span class="fu">c</span>(<span class="st">&quot;H12&quot;</span>, <span class="st">&quot;I12&quot;</span>),</span>
 <span id="cb31-58"><a href="#cb31-58" aria-hidden="true" tabindex="-1"></a>  <span class="at">light =</span> <span class="fu">c</span>(<span class="st">&quot;Ctrl&quot;</span>, <span class="st">&quot;gRNA&quot;</span>)</span>
 <span id="cb31-59"><a href="#cb31-59" aria-hidden="true" tabindex="-1"></a>) <span class="sc">|&gt;</span></span>
 <span id="cb31-60"><a href="#cb31-60" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">light =</span> <span class="fu">factor</span>(light, <span class="at">levels =</span> light_levs))</span>
@@ -3152,7 +3152,7 @@ loaded via a namespace (and not attached):
 <span id="cb31-68"><a href="#cb31-68" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: download</span></span>
 <span id="cb31-69"><a href="#cb31-69" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
 <span id="cb31-70"><a href="#cb31-70" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb31-71"><a href="#cb31-71" aria-hidden="true" tabindex="-1"></a><span class="fu">### Read cells and spots data</span></span>
+<span id="cb31-71"><a href="#cb31-71" aria-hidden="true" tabindex="-1"></a><span class="fu">###### Read cells and spots data</span></span>
 <span id="cb31-72"><a href="#cb31-72" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb31-73"><a href="#cb31-73" aria-hidden="true" tabindex="-1"></a>HITIPS output text files must be in the <span class="in">`data`</span> directory and the file names must match the GLOB pattern.</span>
 <span id="cb31-74"><a href="#cb31-74" aria-hidden="true" tabindex="-1"></a></span>
@@ -3224,7 +3224,7 @@ loaded via a namespace (and not attached):
 <span id="cb31-146"><a href="#cb31-146" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: cell-filter</span></span>
 <span id="cb31-147"><a href="#cb31-147" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb31-148"><a href="#cb31-148" aria-hidden="true" tabindex="-1"></a>cell_filter_tbl <span class="ot">&lt;-</span> cell_tbl <span class="sc">|&gt;</span></span>
-<span id="cb31-149"><a href="#cb31-149" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(area <span class="sc">&gt;=</span> <span class="dv">50</span>, solidity <span class="sc">&gt;=</span> <span class="fl">0.92</span>)</span>
+<span id="cb31-149"><a href="#cb31-149" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(area <span class="sc">&gt;=</span> <span class="dv">45</span>, solidity <span class="sc">&gt;=</span> <span class="fl">0.875</span>)</span>
 <span id="cb31-150"><a href="#cb31-150" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
 <span id="cb31-151"><a href="#cb31-151" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb31-152"><a href="#cb31-152" aria-hidden="true" tabindex="-1"></a><span class="fu">### Spot number per cell calculations</span></span>
@@ -3279,7 +3279,7 @@ loaded via a namespace (and not attached):
 <span id="cb31-207"><a href="#cb31-207" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb31-208"><a href="#cb31-208" aria-hidden="true" tabindex="-1"></a>*2D Spot distance calculations*</span>
 <span id="cb31-209"><a href="#cb31-209" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb31-210"><a href="#cb31-210" aria-hidden="true" tabindex="-1"></a><span class="fu">### Calculate distances between all possible DNA spot pairs for each cell</span></span>
+<span id="cb31-210"><a href="#cb31-210" aria-hidden="true" tabindex="-1"></a>###Calculate distances between all possible DNA spot pairs for each cell</span>
 <span id="cb31-211"><a href="#cb31-211" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb31-214"><a href="#cb31-214" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
 <span id="cb31-215"><a href="#cb31-215" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: calc-spot-dist</span></span>

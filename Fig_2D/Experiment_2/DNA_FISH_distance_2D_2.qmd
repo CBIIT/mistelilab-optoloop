@@ -3,16 +3,11 @@ title: "DNA FISH spots distance calculations"
 author: "Martin Stortz/Gianluca Pegoraro"
 date: today
 date-format: long
-format: 
-  html:
-      self-contained: true
-      code-fold: true
-      code-tools: true
-      code-link: true
+format: gfm
 editor: source
 ---
 
-###Load packages
+### Load packages
 
 ```{r}
 #| label: load-packages
@@ -54,15 +49,16 @@ plate_layout <- tibble(
   mutate(light = factor(light, levels = light_levs))
 ```
 
-###Download data if needed
+
+### Read cells and spots data
+
+HITIPS output text files must be in the `data` directory and the file names must match the GLOB pattern.
+
+Download data if needed
 
 ```{r}
 #| label: download
 ```
-
-###### Read cells and spots data
-
-HITIPS output text files must be in the `data` directory and the file names must match the GLOB pattern.
 
 ### Read cells data
 
@@ -185,9 +181,7 @@ spot_filt_tbl <- spots_tbl |>
   as.data.table()
 ```
 
-*2D Spot distance calculations*
-
-###Calculate distances between all possible spot pairs for each cell
+### Calculate distances between all possible spot pairs for each cell
 
 ```{r}
 #| label: calc-spot-dist
@@ -220,7 +214,7 @@ gf_dist_2D <- spot_filt_tbl[channel %in% 2:4, # Only  Red and Green spots
 setnames(gf_dist_2D, c("Var1", "Var2"), c("g_index", "f_index"))
 ```
 
-###Find minimum spot distance Minimum distance is calculated based on channel 4 spots as reference
+### Find minimum spot distance Minimum distance is calculated based on channel 4 spots as reference
 
 ```{r}
 #| label: proximity-green-farred

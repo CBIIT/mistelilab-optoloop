@@ -1,0 +1,17 @@
+"light","category","n_observed","fraction_observed"
+"Dark","All close",44,0.00735909014885432
+"Dark","All distant",3324,0.555945810336177
+"Dark","One close",2137,0.357417628365947
+"Dark","Two close",474,0.0792774711490216
+"Light","All close",55,0.00767406167155016
+"Light","All distant",4020,0.560904143993303
+"Light","One close",2537,0.353983535649505
+"Light","Two close",555,0.0774382586856425
+"RNA-Dark","All close",95,0.0156327135099556
+"RNA-Dark","All distant",3158,0.519664308046734
+"RNA-Dark","One close",2162,0.355767648510778
+"RNA-Dark","Two close",662,0.108935329932532
+"RNA-Light","All close",179,0.0294165981922761
+"RNA-Light","All distant",2850,0.468364831552999
+"RNA-Light","One close",2212,0.363516844700082
+"RNA-Light","Two close",844,0.138701725554643

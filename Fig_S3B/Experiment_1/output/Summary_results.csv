@@ -1,0 +1,3 @@
+"row","column","well_index","Condition","N_cells","mean_dist","median_dist","close_alleles"
+8,20,"H20","RNA-Light",1228,0.328905416975684,0.258766418828344,0.532905629139073
+8,6,"H6","RNA-Dark",1867,0.423037380323473,0.326522920580247,0.377471703259239

@@ -1,0 +1,3 @@
+"row","column","well_index","Condition","N_cells","mean_dist","median_dist","close_alleles"
+9,19,"I19","LADL-Light",3924,0.639178343762692,0.54476896254868,0.155772441248234
+9,5,"I5","LADL-Dark",4651,0.748911168960145,0.677001730407974,0.101053536873791

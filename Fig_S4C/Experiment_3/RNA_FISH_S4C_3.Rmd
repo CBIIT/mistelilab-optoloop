@@ -1,0 +1,204 @@
+---
+title: "RNA FISH analysis"
+author: "Martin Stortz/Gianluca Pegoraro"
+date: today
+date-format: long
+format: 
+  html:
+      self-contained: true
+      code-fold: true
+      code-tools: true
+      code-link: true
+editor: source
+---
+
+### Load packages
+```{r}
+#| label: load-packages
+#| include: false
+#| warning: false
+
+library(tidyverse)
+library(data.table)
+library(fs)
+library(knitr)
+library(dplyr)
+```
+
+### User variables input and settings specification
+```{r input-variables}
+GLOB_C <- "*nuclei_information_well*" #Pattern for Single Cell data files
+GLOB_S <- "*spots_locations_well*" #Pattern for Single Spot data files
+
+XY_RES <- 0.108 #pixel size in um
+RNAchannel <- 3  #Channel for RNA FISH 
+```
+
+### Metadata: Experimental conditions and plate layout
+Provide experimental conditions and plate layout
+```{r}
+#| label: read-metadata
+
+#Provide experimental conditions in desired order:
+light_levs <- c("Ctrl_1","Ctrl_2","Ctrl_3","Ctrl_Light_1","Ctrl_Light_2","Ctrl_Light_3","sgSubtel+TERT_1","sgSubtel+TERT_2","sgSubtel+TERT_3","sgSubtel+TERT_Light_1","sgSubtel+TERT_Light_2","sgSubtel+TERT_Light_3") 
+
+plate_layout <- tibble(
+  row = c(7L,7L,7L,7L,7L,7L,9L,9L,9L,9L,9L,9L),
+  column = c(5L,6L,7L,18L,19L,20L,5L,6L,7L,18L,19L,20L),
+  well_index = c("G5","G6","G7","G18","G19","G20","I5","I6","I7","I18","I19","I20"),
+  light = c("Ctrl_1","Ctrl_2","Ctrl_3","Ctrl_Light_1","Ctrl_Light_2","Ctrl_Light_3","sgSubtel+TERT_1","sgSubtel+TERT_2","sgSubtel+TERT_3","sgSubtel+TERT_Light_1","sgSubtel+TERT_Light_2","sgSubtel+TERT_Light_3") 
+) %>%
+  mutate(light = factor(light, levels = light_levs))
+```
+
+### Download data if needed
+```{r}
+#| label: download
+
+
+```
+
+###### Read cells and spots data
+HITIPS output text files must be in the `data` directory and the file names must match the GLOB pattern.
+
+### Read cells data
+```{r}
+#| label: read-cells
+
+cell_tbl <- dir_info("data", recurse = TRUE, glob = GLOB_C) %>%
+  filter(size > "1K") %>%
+  rowwise() %>%
+  reframe(fread(path), file_name = as.character(path)) %>%
+  mutate(well_index = paste0(LETTERS[row], column)) %>%
+  select(file_name, column, row, well_index,
+         field_index, time_point, cell_index,
+         area, solidity) %>%
+  left_join(plate_layout, by = c("well_index", "row", "column")) %>%
+  filter(!is.na(light))
+```
+
+### Read spots data
+```{r}
+#| label: read-spots
+
+spots_tbl <- dir_info("data", recurse = TRUE, glob = GLOB_S) %>%
+  filter(size > "1K") %>%
+  rowwise() %>%
+  reframe(fread(path), file_name = as.character(path)) %>%
+  mutate(well_index = paste0(LETTERS[row], column)) %>%
+  select(file_name, column, row, well_index,
+         field_index, time_point, cell_index,
+         channel, integrated_intensity) %>%
+#filter spots not in the nucleus
+   filter(cell_index != 0, channel == RNAchannel) %>%
+  left_join(plate_layout, by = c("well_index", "row", "column")) %>%
+  filter(!is.na(light))
+```
+
+### Filter cells by size and shape
+```{r}
+#| label: cell-filter
+
+cell_filter_tbl <- cell_tbl %>%
+  filter(area >= 45, solidity >= 0.92)
+```
+
+### Filter out spots that do not belong to filtered cells
+```{r}
+#| label: filter-spots
+ 
+filtered_spots_tbl <- spots_tbl %>%
+  semi_join(cell_filter_tbl %>% select(well_index, column, row,
+                                       field_index, time_point, cell_index),
+            by = c("well_index", "column", "row",
+                   "field_index", "time_point", "cell_index"))
+```
+
+### Count spots per cell (for cells with #spots>0)
+```{r}
+#| label: count-spots
+
+spots_per_cell_tbl <- filtered_spots_tbl %>%
+  group_by(well_index, light, column, row,
+           field_index, time_point, cell_index) %>%
+  summarise(n_spots = n(), .groups = "drop")
+```
+
+### Merge filtered cells with spot counts (add cells with #spots=0)
+```{r}
+#| label: join-cells
+
+all_cells_tbl <- cell_filter_tbl %>%
+  select(well_index, light, column, row,
+         field_index, time_point, cell_index) %>%
+  left_join(spots_per_cell_tbl, 
+            by = c("well_index", "light", "column", "row",
+                   "field_index", "time_point", "cell_index")) %>%
+  mutate(n_spots = replace_na(n_spots, 0))
+```
+
+### Per-well level summary of spot count
+```{r}
+#| label: spot-count-summary
+
+summary_tbl <- all_cells_tbl %>%
+  group_by(well_index, light) %>%
+  summarise(
+    n_cells = n(),
+    total_spots = sum(n_spots),
+    avg_spots = mean(n_spots),
+    .groups = "drop"
+  )
+```
+
+### Add spot integrated intensity analysis
+```{r}
+#| label: intensity-analysis
+
+# Summarize spot intensity data per well
+intensity_summary_tbl <- filtered_spots_tbl %>%
+  group_by(well_index, light) %>%
+  summarise(
+    mean_int = mean(integrated_intensity, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+# Merge spot intensity data with spot count data
+summary_tbl <- summary_tbl %>%
+  left_join(intensity_summary_tbl, by = c("well_index", "light"))
+```
+
+### Normalize and summarize data at condition level
+There are 3 technical replicates (wells) per condition
+```{r}
+#| label: condition-summary
+
+
+summary_by_cond <- summary_tbl %>%
+  #Extract Condition names and average replicates by condition
+  mutate(condition = sub("_[0-9]+$", "", light)) %>%
+  group_by(condition) %>%
+  summarise(
+    across(
+      c(n_cells, total_spots, avg_spots, mean_int),
+      ~ mean(.x, na.rm = TRUE)
+    ),
+    .groups = "drop"
+  ) %>%
+  #Normalize average values by Control
+  mutate(
+    avg_spots_norm = avg_spots / avg_spots[condition == "Ctrl"],
+    mean_int_norm  = mean_int  / mean_int[condition == "Ctrl"]
+  )
+
+#Save summary data file
+write.csv(summary_by_cond, "output/summary.csv", row.names = FALSE)
+```
+
+### Session info
+```{r}
+#| label: session-info
+#| results: markup
+
+sessionInfo()
+```

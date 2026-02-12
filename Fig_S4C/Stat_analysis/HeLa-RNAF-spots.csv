@@ -1,0 +1,29 @@
+﻿dependent_variable,factor1,factor2
+1,No_sg,Dark
+1,No_sg,Dark
+1,No_sg,Dark
+1,No_sg,Dark
+1,No_sg,Dark
+1.023398985,No_sg,Light
+0.901433835,No_sg,Light
+0.985531603,No_sg,Light
+0.875490314,No_sg,Light
+0.878669012,No_sg,Light
+0.926745292,sgSubtel,Dark
+0.975918883,sgSubtel,Dark
+0.805045883,sgSubtel,Light
+0.927321758,sgSubtel,Light
+0.863460913,sgTERT,Dark
+0.775938676,sgTERT,Dark
+0.790922522,sgTERT,Light
+0.735831754,sgTERT,Light
+0.877117408,sgSubtelo + sgTERT,Dark
+0.867900457,sgSubtelo + sgTERT,Dark
+0.871264111,sgSubtelo + sgTERT,Dark
+1.058225007,sgSubtelo + sgTERT,Dark
+0.956749182,sgSubtelo + sgTERT,Dark
+0.839378506,sgSubtelo + sgTERT,Light
+0.781186078,sgSubtelo + sgTERT,Light
+0.886004662,sgSubtelo + sgTERT,Light
+1.093617817,sgSubtelo + sgTERT,Light
+0.828004114,sgSubtelo + sgTERT,Light
